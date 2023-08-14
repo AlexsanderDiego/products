@@ -159,6 +159,11 @@ function obterFormData(){
 
 async function salvarProduto(event){
     event.preventDefault();
+    // recuperar o elemento do botão salvar
+    const botaoSalvar = document.querySelector('#btn-salvar');
+    // adicionar o atributo disabled
+    botaoSalvar.setAttribute('disabled', 'disabled');
+
     const produto = obterFormData();
     // identificar se é um produto novo ou edição
     // const resp = await fetch(`${API}/products/${id}`, {
@@ -175,8 +180,12 @@ async function salvarProduto(event){
         console.error('Erro ao adicionar produto');
         return;
     }
+    // remover o atributo disabled
+    botaoSalvar.removeAttribute('disabled');
+
     const meusProdutos = await obterProdutos();
     imprimirProdutos(meusProdutos);
+    confirm("Produto criado com sucesso!");
 }
 
 async function excluirProduto(id){
