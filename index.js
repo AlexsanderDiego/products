@@ -97,9 +97,12 @@ function imprimirProdutos(products){
         linkRemover.textContent = 'Excluir';
         linkRemover.addEventListener('click', async (event) => {
             event.preventDefault();
-            await excluirProduto(product.id);
-            const novosProdutos = await obterProdutos();
-            imprimirProdutos(novosProdutos);
+            const confirmarExcluir = confirm('Deseja excluir intem?');
+            if (confirmarExcluir) {
+                await excluirProduto(product.id);
+                const novosProdutos = await obterProdutos();
+                imprimirProdutos(novosProdutos);
+            }
         });
 
         const linkEditar = document.createElement('a');
@@ -180,18 +183,25 @@ async function salvarProduto(event){
         console.error('Erro ao adicionar produto');
         return;
     }
-    // remover o atributo disabled
-    botaoSalvar.removeAttribute('disabled');
-
+    
     const meusProdutos = await obterProdutos();
     imprimirProdutos(meusProdutos);
-    confirm("Produto criado com sucesso!");
+    alert("Produto criado com sucesso!");
+    
+    limparForm();
+     
+    // remover o atributo disabled
+    botaoSalvar.removeAttribute('disabled');
 }
 
 async function excluirProduto(id){
     const response = await fetch(`${API}/products/${id}`, { method: 'DELETE' });
-    if (response.status !== 204) {
-        console.error('Erro ao excluir produto');
+    if (response.status === 404) {
+        alert('Produto não encontrado')
+    } else if (response.status !== 204) {
+        alert('Erro ao excluir produto');
+    } else {
+        alert('Produto excluido')
     }
 }
 
@@ -199,6 +209,18 @@ function registrarListeners(){
     const form = document.querySelector('#form-produto');
     form.addEventListener('submit', salvarProduto);
 }
+
+function limparForm(){
+    const inputNome = document.querySelector('#name');
+    const inputCor = document.querySelector('#color');
+    const inputQuantidade = document.querySelector('#amount');
+    const inputPreco = document.querySelector('#price');
+
+    inputNome.value = '';
+    inputCor.value = '';
+    inputQuantidade.value = '';
+    inputPreco.value = '';
+};
 
 async function init(){
     registrarListeners();
