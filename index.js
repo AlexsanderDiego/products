@@ -15,10 +15,10 @@ const cabecalho = [
     'Ações',
 ];
 
-function criarCabecalho(){
+function criarCabecalho() {
     const thead = document.createElement('thead');
     thead.classList.add('text-xs', 'text-gray-700', 'uppercase', 'bg-gray-50');
-    
+
     const trHead = document.createElement('tr');
 
     cabecalho.forEach((nomeCabecalho) => {
@@ -33,7 +33,7 @@ function criarCabecalho(){
     return thead;
 };
 
-function criarRodape(produtos){
+function criarRodape(produtos) {
     const tfoot = document.createElement('tfoot');
     const trRodape = document.createElement('tr');
     trRodape.classList.add('font-semibold', 'text-gray-900');
@@ -47,12 +47,12 @@ function criarRodape(produtos){
 
     const tdQuantidade = document.createElement('td');
     tdQuantidade.classList.add('px-6', 'py-3');
-    tdQuantidade.textContent = produtos.reduce((acumulador, produto) => acumulador + produto.amount, 0 );
+    tdQuantidade.textContent = produtos.reduce((acumulador, produto) => acumulador + produto.amount, 0);
     trRodape.appendChild(tdQuantidade);
 
     const tdPrecoTotal = document.createElement('td');
     tdPrecoTotal.classList.add('px-6', 'py-3');
-    const somaTotal = produtos.reduce((acumulador, produto) => acumulador + produto.price, 0 );
+    const somaTotal = produtos.reduce((acumulador, produto) => acumulador + produto.price, 0);
     tdPrecoTotal.textContent = somaTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     trRodape.appendChild(tdPrecoTotal);
 
@@ -60,7 +60,7 @@ function criarRodape(produtos){
     return tfoot;
 }
 
-function imprimirProdutos(products){
+function imprimirProdutos(products) {
     const table = document.querySelector('#tabela-produtos');
     table.innerHTML = '';
     table.classList.add('w-full', 'text-sm', 'text-left', 'text-gray-500');
@@ -69,59 +69,69 @@ function imprimirProdutos(products){
     table.appendChild(thead);
 
     const tbody = document.createElement('tbody');
-    products.forEach((product) => {
-        const tr = document.createElement('tr');
-        tr.classList.add('bg-white', 'border-b', 'hover:bg-gray-50');
-        for (const key in product) {
-            let coluna = document.createElement('td');
-            coluna.classList.add('px-6', 'py-4');
-            if (key === 'name') {
-                coluna = document.createElement('th');
-                coluna.classList.add('px-6', 'py-4', 'font-medium', 'text-gray-900', 'whitespace-nowrap');
-                coluna.setAttribute('scope', 'row');
+    if (products.length === 0) {
+        const trSemProdutos = document.createElement('tr');
+        const tdMensagem = document.createElement('td');
+        tdMensagem.setAttribute('colspan', cabecalho.length.toString());
+        tdMensagem.classList.add('px-6', 'py-4', 'text-center');
+        tdMensagem.textContent = 'Nenhum produto cadastrado.';
+        trSemProdutos.appendChild(tdMensagem);
+        tbody.appendChild(trSemProdutos);
+    } else {
+        products.forEach((product) => {
+            const tr = document.createElement('tr');
+            tr.classList.add('bg-white', 'border-b', 'hover:bg-gray-50');
+            for (const key in product) {
+                let coluna = document.createElement('td');
+                coluna.classList.add('px-6', 'py-4');
+                if (key === 'name') {
+                    coluna = document.createElement('th');
+                    coluna.classList.add('px-6', 'py-4', 'font-medium', 'text-gray-900', 'whitespace-nowrap');
+                    coluna.setAttribute('scope', 'row');
+                }
+                const valor = product[key];
+                coluna.textContent = valor;
+                if (key === 'price') {
+                    coluna.textContent = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                }
+                tr.appendChild(coluna);
             }
-            const valor = product[key];
-            coluna.textContent = valor;
-            if (key === 'price') {
-                coluna.textContent = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-            }
-            tr.appendChild(coluna);
-        }
-        
-        const tdAcoes = document.createElement('td');
-        tdAcoes.classList.add('flex', 'items-center', 'px-6', 'py-4', 'space-x-3');
-        
-        const linkRemover = document.createElement('a');
-        linkRemover.setAttribute('href', '#');
-        linkRemover.classList.add('font-medium', 'text-red-600', 'hover:underline');
-        linkRemover.textContent = 'Excluir';
-        linkRemover.addEventListener('click', async (event) => {
-            event.preventDefault();
-            const confirmarExcluir = confirm('Deseja excluir intem?');
-            if (confirmarExcluir) {
-                await excluirProduto(product.id);
-                const novosProdutos = await obterProdutos();
-                imprimirProdutos(novosProdutos);
-            }
+
+            const tdAcoes = document.createElement('td');
+            tdAcoes.classList.add('flex', 'items-center', 'px-6', 'py-4', 'space-x-3');
+
+            const linkRemover = document.createElement('a');
+            linkRemover.setAttribute('href', '#');
+            linkRemover.classList.add('font-medium', 'text-red-600', 'hover:underline');
+            linkRemover.textContent = 'Excluir';
+            linkRemover.addEventListener('click', async (event) => {
+                event.preventDefault();
+                const confirmarExcluir = confirm('Deseja excluir intem?');
+                if (confirmarExcluir) {
+                    await excluirProduto(product.id);
+                    const novosProdutos = await obterProdutos();
+                    imprimirProdutos(novosProdutos);
+                }
+            });
+
+            const linkEditar = document.createElement('a');
+            linkEditar.setAttribute('href', '#');
+            linkEditar.classList.add('font-medium', 'text-blue-600', 'hover:underline');
+            linkEditar.textContent = 'Editar';
+            linkEditar.addEventListener('click', async (event) => {
+                event.preventDefault();
+                preencherForm(product);
+                // capturar o produto para edição
+            });
+
+            tdAcoes.appendChild(linkEditar);
+            tdAcoes.appendChild(linkRemover);
+
+            tr.appendChild(tdAcoes);
+
+            tbody.appendChild(tr);
         });
-
-        const linkEditar = document.createElement('a');
-        linkEditar.setAttribute('href', '#');
-        linkEditar.classList.add('font-medium', 'text-blue-600', 'hover:underline');
-        linkEditar.textContent = 'Editar';
-        linkEditar.addEventListener('click', async (event) => {
-            event.preventDefault();
-            preencherForm(product);
-            // capturar o produto para edição
-        });
-
-        tdAcoes.appendChild(linkEditar);
-        tdAcoes.appendChild(linkRemover);
-
-        tr.appendChild(tdAcoes);
-         
-        tbody.appendChild(tr); 
-    });
+    }
 
     const tfoot = criarRodape(products);
 
@@ -130,7 +140,7 @@ function imprimirProdutos(products){
     table.appendChild(tbody);
 }
 
-function preencherForm(produto){
+function preencherForm(produto) {
     const inputNome = document.querySelector('#name');
     const inputCor = document.querySelector('#color');
     const inputQuantidade = document.querySelector('#amount');
@@ -142,7 +152,7 @@ function preencherForm(produto){
     inputPreco.value = produto.price;
 };
 
-function obterFormData(){
+function obterFormData() {
     const inputNome = document.querySelector('#name');
     const inputCor = document.querySelector('#color');
     const inputQuantidade = document.querySelector('#amount');
@@ -160,7 +170,7 @@ function obterFormData(){
     };
 };
 
-async function salvarProduto(event){
+async function salvarProduto(event) {
     event.preventDefault();
     // recuperar o elemento do botão salvar
     const botaoSalvar = document.querySelector('#btn-salvar');
@@ -168,12 +178,18 @@ async function salvarProduto(event){
     botaoSalvar.setAttribute('disabled', 'disabled');
 
     const produto = obterFormData();
-    // identificar se é um produto novo ou edição
+    //identificar se é um produto novo ou edição
     // const resp = await fetch(`${API}/products/${id}`, {
     //     method: 'PUT',
     //     headers: { 'Content-Type': 'application/json' },
     //     body: JSON.stringify(produto)
     // });
+    // if (resp.status !== 200) {
+    //     console.error('Erro ao editar produto');
+    //     return;
+    // }
+    // alert("Produto editado com sucesso!");
+
     const response = await fetch(`${API}/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -183,18 +199,18 @@ async function salvarProduto(event){
         console.error('Erro ao adicionar produto');
         return;
     }
-    
+    alert("Produto criado com sucesso!");
+
     const meusProdutos = await obterProdutos();
     imprimirProdutos(meusProdutos);
-    alert("Produto criado com sucesso!");
-    
+
     limparForm();
-     
+
     // remover o atributo disabled
     botaoSalvar.removeAttribute('disabled');
 }
 
-async function excluirProduto(id){
+async function excluirProduto(id) {
     const response = await fetch(`${API}/products/${id}`, { method: 'DELETE' });
     if (response.status === 404) {
         alert('Produto não encontrado')
@@ -205,12 +221,12 @@ async function excluirProduto(id){
     }
 }
 
-function registrarListeners(){
+function registrarListeners() {
     const form = document.querySelector('#form-produto');
     form.addEventListener('submit', salvarProduto);
 }
 
-function limparForm(){
+function limparForm() {
     const inputNome = document.querySelector('#name');
     const inputCor = document.querySelector('#color');
     const inputQuantidade = document.querySelector('#amount');
@@ -222,7 +238,7 @@ function limparForm(){
     inputPreco.value = '';
 };
 
-async function init(){
+async function init() {
     registrarListeners();
     const produtos = await obterProdutos();
     imprimirProdutos(produtos);
